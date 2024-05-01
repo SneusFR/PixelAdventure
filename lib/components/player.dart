@@ -39,6 +39,8 @@ class Player extends SpriteAnimationGroupComponent
   late final SpriteAnimation hitAnimation;
   late final SpriteAnimation appearingAnimation;
   late final SpriteAnimation disappearingAnimation;
+  late final SpriteAnimation doubleJumpAnimation;
+
 
   final double _gravity = 9.8;
   final double _jumpForce = 260;
@@ -48,6 +50,9 @@ class Player extends SpriteAnimationGroupComponent
   Vector2 startingPosition = Vector2.zero();
   Vector2 velocity = Vector2.zero();
   bool isOnGround = false;
+  bool isOnAir = false;
+  int jumpMax = 0;
+  bool hasDoubleJumped = false;
   bool hasJumped = false;
   bool gotHit = false;
   bool reachedCheckpoint = false;
@@ -105,7 +110,23 @@ class Player extends SpriteAnimationGroupComponent
     horizontalMovement += isLeftKeyPressed ? -1 : 0;
     horizontalMovement += isRightKeyPressed ? 1 : 0;
 
-    hasJumped = keysPressed.contains(LogicalKeyboardKey.space);
+     if(keysPressed.contains(LogicalKeyboardKey.space)) {
+
+       if(isOnGround) {
+         hasJumped=true;
+         jumpMax++;
+         isOnAir = true;
+         isOnGround=false;
+       }
+     };
+
+    if(keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
+     if (isOnAir  && jumpMax < 2) {
+
+       hasDoubleJumped = true;
+        jumpMax++;
+      }
+    }
 
     return super.onKeyEvent(event, keysPressed);
   }
@@ -191,7 +212,8 @@ class Player extends SpriteAnimationGroupComponent
   }
 
   void _updatePlayerMovement(double dt) {
-    if (hasJumped && isOnGround) _playerJump(dt);
+    if(hasJumped) _playerJump(dt, jumpMax);
+    if(hasDoubleJumped) _playerDoubleJump(dt, jumpMax);
 
     // if (velocity.y > _gravity) isOnGround = false; // optional
 
@@ -199,12 +221,19 @@ class Player extends SpriteAnimationGroupComponent
     position.x += velocity.x * dt;
   }
 
-  void _playerJump(double dt) {
+  void _playerJump(double dt, cpt) {
+    if (game.playSounds) FlameAudio.play('jump.wav', volume: game.soundVolume);
+      velocity.y = -_jumpForce;
+      position.y += velocity.y * dt;
+      isOnGround = false;
+      hasJumped = false;
+  }
+
+  void _playerDoubleJump(double dt, cpt) {
     if (game.playSounds) FlameAudio.play('jump.wav', volume: game.soundVolume);
     velocity.y = -_jumpForce;
     position.y += velocity.y * dt;
-    isOnGround = false;
-    hasJumped = false;
+    hasDoubleJumped = false;
   }
 
   void _checkHorizontalCollisions() {
@@ -240,6 +269,7 @@ class Player extends SpriteAnimationGroupComponent
             velocity.y = 0;
             position.y = block.y - hitbox.height - hitbox.offsetY;
             isOnGround = true;
+            jumpMax = 0;
             break;
           }
         }
@@ -249,6 +279,7 @@ class Player extends SpriteAnimationGroupComponent
             velocity.y = 0;
             position.y = block.y - hitbox.height - hitbox.offsetY;
             isOnGround = true;
+            jumpMax = 0;
             break;
           }
           if (velocity.y < 0) {

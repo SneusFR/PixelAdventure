@@ -11,8 +11,8 @@ enum State { idle, run, hit }
 
 class Chicken extends SpriteAnimationGroupComponent
     with HasGameRef<PixelAdventure>, CollisionCallbacks {
-  final double offNeg;
-  final double offPos;
+  final double offNeg; // Limite à gauche déplacement x
+  final double offPos; // Limite à droite déplacement x
   Chicken({
     super.position,
     super.size,
@@ -20,15 +20,15 @@ class Chicken extends SpriteAnimationGroupComponent
     this.offPos = 0,
   });
 
-  static const stepTime = 0.05;
-  static const tileSize = 16;
-  static const runSpeed = 80;
+  static const stepTime = 0.05; // Vitesse animation
+  static const tileSize = 16; //Taille d'une tuile
+  static const runSpeed = 60; //Vitesse de course
   static const _bounceHeight = 260.0;
-  final textureSize = Vector2(32, 34);
+  final textureSize = Vector2(32, 34); //Taille image poulet
 
   Vector2 velocity = Vector2.zero();
-  double rangeNeg = 0;
-  double rangePos = 0;
+  double rangeNeg = 0; // Portée à gauche max
+  double rangePos = 0; // Portée à droite max
   double moveDirection = 1;
   double targetDirection = -1;
   bool gotStomped = false;
@@ -45,22 +45,21 @@ class Chicken extends SpriteAnimationGroupComponent
 
     add(
       RectangleHitbox(
-        position: Vector2(4, 6),
-        size: Vector2(24, 26),
+        position: Vector2(4, 6), // Ancrage hitbox par rapport au poulet
+        size: Vector2(24, 26), // Taille hitbox
       ),
     );
-    _loadAllAnimations();
-    _calculateRange();
+    _loadAllAnimations(); // Charge toutes les animations
+    _calculateRange(); // Calcule la portée
     return super.onLoad();
   }
 
   @override
-  void update(double dt) {
+  void update(double dt) { // Se rafraichit à chaque rafraichissement d'écran
     if (!gotStomped) {
-      _updateState();
-      _movement(dt);
+      _updateState(); // Met à jour l'étude
+      _movement(dt); // Bouge le poulet
     }
-
     super.update(dt);
   }
 
@@ -90,8 +89,8 @@ class Chicken extends SpriteAnimationGroupComponent
   }
 
   void _calculateRange() {
-    rangeNeg = position.x - offNeg * tileSize;
-    rangePos = position.x + offPos * tileSize;
+    rangeNeg = position.x - offNeg * tileSize; // Calculer la rangée max portée du poulet à gauche
+    rangePos = position.x + offPos * tileSize;// Calculer la rangée max portée du poulet à droite
   }
 
   void _movement(dt) {
@@ -118,11 +117,13 @@ class Chicken extends SpriteAnimationGroupComponent
 
     return player.x + playerOffset >= rangeNeg &&
         player.x + playerOffset <= rangePos &&
-        player.y + player.height > position.y &&
-        player.y < position.y + height;
+        player.y + player.height >= position.y + height - 60 ;
   }
 
   void _updateState() {
+    //Définit l'état actuel du poulet en fonction de sa vitesse horizontale.
+    // Si `velocity.x` n'est pas égal à zéro, cela signifie que le poulet est en mouvement,
+    // donc l'état est défini sur `State.run`. Sinon, il est défini sur `State.idle`.
     current = (velocity.x != 0) ? State.run : State.idle;
 
     if ((moveDirection > 0 && scale.x > 0) ||
