@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:pixel_adventure/components/checkpoint.dart';
 import 'package:pixel_adventure/components/chicken.dart';
@@ -20,7 +21,8 @@ enum PlayerState {
   falling,
   hit,
   appearing,
-  disappearing
+  disappearing,
+  dj,
 }
 
 class Player extends SpriteAnimationGroupComponent
@@ -151,6 +153,7 @@ class Player extends SpriteAnimationGroupComponent
     hitAnimation = _spriteAnimation('Hit', 7)..loop = false;
     appearingAnimation = _specialSpriteAnimation('Appearing', 7);
     disappearingAnimation = _specialSpriteAnimation('Desappearing', 7);
+    doubleJumpAnimation = _spriteAnimation('Double Jump', 6);
 
     // List of all animations
     animations = {
@@ -160,6 +163,7 @@ class Player extends SpriteAnimationGroupComponent
       PlayerState.falling: fallingAnimation,
       PlayerState.hit: hitAnimation,
       PlayerState.appearing: appearingAnimation,
+      PlayerState.dj: doubleJumpAnimation,
       PlayerState.disappearing: disappearingAnimation,
     };
 
@@ -206,9 +210,13 @@ class Player extends SpriteAnimationGroupComponent
     if (velocity.y > 0) playerState = PlayerState.falling;
 
     // Checks if jumping, set to jumping
-    if (velocity.y < 0) playerState = PlayerState.jumping;
+    if (hasJumped) playerState = PlayerState.jumping;
+
+    if (hasDoubleJumped) playerState = PlayerState.dj;
+
 
     current = playerState;
+    print(current);
   }
 
   void _updatePlayerMovement(double dt) {
@@ -269,6 +277,7 @@ class Player extends SpriteAnimationGroupComponent
             velocity.y = 0;
             position.y = block.y - hitbox.height - hitbox.offsetY;
             isOnGround = true;
+            isOnAir = false;
             jumpMax = 0;
             break;
           }
@@ -279,6 +288,7 @@ class Player extends SpriteAnimationGroupComponent
             velocity.y = 0;
             position.y = block.y - hitbox.height - hitbox.offsetY;
             isOnGround = true;
+            isOnAir = false;
             jumpMax = 0;
             break;
           }
