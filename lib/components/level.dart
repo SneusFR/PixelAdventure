@@ -27,7 +27,6 @@ class Level extends World with HasGameRef<PixelAdventure> {
     _scrollingBackground();
     _spawningObjects();
     _addCollisions();
-
     return super.onLoad();
   }
 

@@ -23,21 +23,18 @@ class PixelAdventure extends FlameGame
   bool showControls = false;
   bool playSounds = true;
   double soundVolume = 1.0;
-  List<String> levelNames = ['Level-01', 'Level-01'];
+  List<String> levelNames = ['Level-01', 'Level-02'];
   int currentLevelIndex = 0;
 
   @override
   FutureOr<void> onLoad() async {
     // Load all images into cache
     await images.loadAllImages();
-
     _loadLevel();
-
     if (showControls) {
       addJoystick();
       add(JumpButton());
     }
-
     return super.onLoad();
   }
 
